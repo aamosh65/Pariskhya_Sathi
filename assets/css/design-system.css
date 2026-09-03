@@ -1,0 +1,681 @@
+/* ==========================================================================
+   Parikshya Sathi - Apple Human Interface Design System
+   Faithfully implemented based on DESIGN.md
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Color Tokens */
+  --primary: #0066cc;
+  --primary-focus: #0071e3;
+  --primary-on-dark: #2997ff;
+  --ink: #1d1d1f;
+  --body: #1d1d1f;
+  --body-on-dark: #ffffff;
+  --body-muted: #cccccc;
+  --ink-muted-80: #333333;
+  --ink-muted-48: #7a7a7a;
+  --divider-soft: #f0f0f0;
+  --hairline: #e0e0e0;
+  --canvas: #ffffff;
+  --canvas-parchment: #f5f5f7;
+  --surface-pearl: #fafafc;
+  --surface-tile-1: #272729;
+  --surface-tile-2: #2a2a2c;
+  --surface-tile-3: #252527;
+  --surface-black: #000000;
+  --surface-chip-translucent: rgba(210, 210, 215, 0.64);
+  --on-primary: #ffffff;
+  --on-dark: #ffffff;
+  
+  /* Status Colors */
+  --success: #34c759;
+  --success-subtle: #eafaf1;
+  --warning: #ff9500;
+  --warning-subtle: #fff7eb;
+  --danger: #ff3b30;
+  --danger-subtle: #feeceb;
+
+  /* Typography */
+  --font-family-display: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  --font-family-text: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+
+  /* Border Radii */
+  --radius-none: 0px;
+  --radius-xs: 5px;
+  --radius-sm: 8px;
+  --radius-md: 11px;
+  --radius-lg: 18px;
+  --radius-pill: 9999px;
+
+  /* Spacing */
+  --spacing-xxs: 4px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 17px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+  --spacing-section: 64px;
+
+  /* Shadow */
+  --product-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --floating-shadow: 0 12px 36px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* Global Reset & Typography Baseline */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family-text);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.47;
+  letter-spacing: -0.374px;
+  color: var(--body);
+  background-color: var(--canvas-parchment);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings with Negative Tracking */
+h1, .hero-display {
+  font-family: var(--font-family-display);
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.374px;
+  color: var(--ink);
+  margin-top: 0;
+}
+
+@media (min-width: 1024px) {
+  h1, .hero-display {
+    font-size: 48px;
+    letter-spacing: -0.45px;
+  }
+}
+
+h2, .display-lg {
+  font-family: var(--font-family-display);
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.35px;
+  color: var(--ink);
+}
+
+h3, .display-md {
+  font-family: var(--font-family-text);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.3px;
+  color: var(--ink);
+}
+
+h4, .tagline {
+  font-family: var(--font-family-display);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.2px;
+  color: var(--ink);
+}
+
+p, .body-text {
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.47;
+  letter-spacing: -0.374px;
+  color: var(--ink);
+}
+
+.body-strong {
+  font-weight: 600;
+}
+
+.caption {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.43;
+  letter-spacing: -0.224px;
+  color: var(--ink-muted-48);
+}
+
+.caption-strong {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.224px;
+  color: var(--ink);
+}
+
+.fine-print {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: -0.12px;
+  color: var(--ink-muted-48);
+}
+
+/* ==========================================================================
+   Navigation Bars (Global Black + Frosted Subnav)
+   ========================================================================== */
+
+.global-nav {
+  height: 44px;
+  background-color: var(--surface-black);
+  color: var(--on-dark);
+  display: flex;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1050;
+  padding: 0 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.global-nav .brand-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.15px;
+  color: #ffffff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.global-nav .nav-link-item {
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: -0.12px;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: var(--radius-xs);
+  transition: color 0.15s ease;
+}
+
+.global-nav .nav-link-item:hover {
+  color: #ffffff;
+}
+
+.global-nav .nav-link-item.active {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.sub-nav-frosted {
+  height: 54px;
+  background-color: rgba(245, 245, 247, 0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 44px;
+  z-index: 1040;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+}
+
+.sub-nav-frosted .category-title {
+  font-family: var(--font-family-display);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* ==========================================================================
+   Buttons & Interactive Elements
+   ========================================================================== */
+
+.btn-apple-primary {
+  background-color: var(--primary);
+  color: var(--on-primary) !important;
+  font-family: var(--font-family-text);
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: var(--radius-pill);
+  padding: 9px 20px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.1s ease, background-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-apple-primary:hover {
+  background-color: var(--primary-focus);
+}
+
+.btn-apple-primary:active {
+  transform: scale(0.95);
+}
+
+.btn-apple-secondary {
+  background-color: var(--canvas);
+  color: var(--primary) !important;
+  font-family: var(--font-family-text);
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: var(--radius-pill);
+  padding: 8px 19px;
+  border: 1px solid var(--hairline);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.1s ease, border-color 0.15s ease, background-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-apple-secondary:hover {
+  border-color: var(--primary);
+  background-color: var(--surface-pearl);
+}
+
+.btn-apple-secondary:active {
+  transform: scale(0.95);
+}
+
+.btn-apple-dark {
+  background-color: var(--ink);
+  color: var(--on-dark) !important;
+  font-family: var(--font-family-text);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.15px;
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.15s ease;
+}
+
+.btn-apple-dark:hover {
+  opacity: 0.9;
+}
+
+.btn-apple-dark:active {
+  transform: scale(0.95);
+}
+
+.btn-apple-ghost {
+  background-color: transparent;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.btn-apple-ghost:hover {
+  background-color: rgba(0, 102, 204, 0.08);
+}
+
+/* ==========================================================================
+   Cards & Layout Surfaces
+   ========================================================================== */
+
+.apple-card {
+  background-color: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 24px;
+  position: relative;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.apple-card-dark {
+  background-color: var(--surface-tile-1);
+  color: var(--body-on-dark);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+.apple-card-dark h1, .apple-card-dark h2, .apple-card-dark h3, .apple-card-dark h4 {
+  color: #ffffff;
+}
+
+.apple-card-dark p {
+  color: var(--body-muted);
+}
+
+/* Metric / Stat Card */
+.stat-card {
+  background-color: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.stat-card .stat-label {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ink-muted-48);
+  margin-bottom: 8px;
+}
+
+.stat-card .stat-value {
+  font-family: var(--font-family-display);
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--ink);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.stat-card .stat-desc {
+  font-size: 13px;
+  color: var(--ink-muted-48);
+}
+
+/* ==========================================================================
+   Badges, Chips & Status Pills
+   ========================================================================== */
+
+.badge-apple {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.badge-apple-primary {
+  background-color: rgba(0, 102, 204, 0.1);
+  color: var(--primary);
+}
+
+.badge-apple-success {
+  background-color: var(--success-subtle);
+  color: #1b873f;
+}
+
+.badge-apple-warning {
+  background-color: var(--warning-subtle);
+  color: #b36200;
+}
+
+.badge-apple-danger {
+  background-color: var(--danger-subtle);
+  color: #d70015;
+}
+
+.badge-apple-neutral {
+  background-color: #ededf0;
+  color: var(--ink-muted-80);
+}
+
+/* ==========================================================================
+   Form Inputs & Search
+   ========================================================================== */
+
+.form-control-apple, .form-select-apple {
+  font-family: var(--font-family-text);
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--ink);
+  background-color: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-control-apple:focus, .form-select-apple:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
+}
+
+.search-input-pill {
+  font-family: var(--font-family-text);
+  font-size: 14px;
+  color: var(--ink);
+  background-color: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill);
+  padding: 9px 18px 9px 38px;
+  width: 100%;
+  outline: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%237a7a7a' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 14px center;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-input-pill:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15);
+}
+
+/* ==========================================================================
+   Data Tables
+   ========================================================================== */
+
+.table-apple {
+  width: 100%;
+  margin-bottom: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table-apple th {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-muted-48);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--hairline);
+  background-color: var(--surface-pearl);
+}
+
+.table-apple td {
+  font-size: 15px;
+  color: var(--ink);
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--divider-soft);
+  vertical-align: middle;
+}
+
+.table-apple tr:last-child td {
+  border-bottom: none;
+}
+
+.table-apple tr:hover td {
+  background-color: rgba(0, 0, 0, 0.015);
+}
+
+/* ==========================================================================
+   Room Visual Matrix & Seat Grids
+   ========================================================================== */
+
+.room-grid-canvas {
+  background-color: var(--surface-pearl);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  overflow-x: auto;
+}
+
+.teacher-podium {
+  background-color: #272729;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  max-width: 320px;
+  margin: 0 auto 24px auto;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.furniture-bench {
+  background-color: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.furniture-bench:hover {
+  border-color: var(--primary);
+}
+
+.seat-slot {
+  background-color: var(--surface-pearl);
+  border: 1px dashed #c0c0c6;
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  min-height: 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.seat-slot.occupied {
+  background-color: #ffffff;
+  border: 1px solid var(--hairline);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.seat-slot.occupied-bca {
+  border-left: 4px solid #0066cc;
+}
+
+.seat-slot.occupied-csit {
+  border-left: 4px solid #34c759;
+}
+
+.seat-slot.occupied-bbm {
+  border-left: 4px solid #ff9500;
+}
+
+.seat-slot.occupied-bba {
+  border-left: 4px solid #af52de;
+}
+
+.seat-slot.seat-selected {
+  outline: 2px solid var(--primary);
+  background-color: rgba(0, 102, 204, 0.08);
+}
+
+.seat-slot.disabled-seat {
+  background-color: #eaeaea;
+  border-color: transparent;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   A4 Print Media Stylesheets (Pixel Perfect Document Generation)
+   ========================================================================== */
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 12mm 12mm 12mm;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt;
+    line-height: 1.3;
+  }
+
+  .global-nav,
+  .sub-nav-frosted,
+  .no-print,
+  .btn-apple-primary,
+  .btn-apple-secondary,
+  .btn-apple-dark,
+  .footer {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .apple-card {
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-bottom: 15px !important;
+    border-radius: 0 !important;
+  }
+
+  .page-break {
+    page-break-after: always;
+  }
+
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  table, th, td {
+    border: 1px solid #000000 !important;
+  }
+
+  th, td {
+    padding: 6px 8px !important;
+    font-size: 10pt !important;
+  }
+
+  th {
+    background-color: #f0f0f0 !important;
+    color: #000000 !important;
+  }
+}
