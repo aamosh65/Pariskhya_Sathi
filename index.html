@@ -27,10 +27,10 @@
                 </p>
             </div>
             <div class="col-lg-4 text-lg-end d-flex flex-wrap gap-2 justify-content-lg-end">
-                <a href="allocations.html?action=new" class="btn-apple-primary text-decoration-none">
+                <a href="pages/allocations.html?action=new" class="btn-apple-primary text-decoration-none">
                     <i class="bi bi-magic me-1"></i> New Allocation
                 </a>
-                <a href="students.html?action=import" class="btn-apple-secondary text-decoration-none">
+                <a href="pages/students.html?action=import" class="btn-apple-secondary text-decoration-none">
                     <i class="bi bi-file-earmark-spreadsheet me-1"></i> Import Students
                 </a>
             </div>
@@ -78,7 +78,7 @@
                         <h3 class="display-md mb-0 fs-4">Examination Allocations</h3>
                         <div class="caption text-muted">Active and draft seating plans</div>
                     </div>
-                    <a href="allocations.html" class="btn-apple-ghost text-decoration-none">View All <i class="bi bi-chevron-right"></i></a>
+                    <a href="pages/allocations.html" class="btn-apple-ghost text-decoration-none">View All <i class="bi bi-chevron-right"></i></a>
                 </div>
 
                 <div class="table-responsive">
@@ -109,7 +109,7 @@
             <div class="apple-card mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h4 class="tagline mb-0 fs-5">Enrolled Programs</h4>
-                    <a href="students.html" class="fine-print text-primary text-decoration-none">Manage</a>
+                    <a href="pages/students.html" class="fine-print text-primary text-decoration-none">Manage</a>
                 </div>
                 <div id="program-cohorts-list" class="d-flex flex-column gap-3">
                     <div class="text-center text-muted py-3">Loading cohorts...</div>
@@ -119,21 +119,21 @@
             <div class="apple-card">
                 <h4 class="tagline mb-3 fs-5">Quick Actions</h4>
                 <div class="d-grid gap-2">
-                    <a href="allocations.html?action=new" class="btn btn-outline-primary text-start p-2 d-flex align-items-center gap-2">
+                    <a href="pages/allocations.html?action=new" class="btn btn-outline-primary text-start p-2 d-flex align-items-center gap-2">
                         <i class="bi bi-magic fs-5"></i>
                         <div>
                             <div class="fw-semibold" style="font-size:14px;">Generate Seating Plan</div>
                             <div class="fine-print text-muted">Run randomized multi-room allocator</div>
                         </div>
                     </a>
-                    <a href="rooms.html?action=new" class="btn btn-outline-secondary text-start p-2 d-flex align-items-center gap-2">
+                    <a href="pages/rooms.html?action=new" class="btn btn-outline-secondary text-start p-2 d-flex align-items-center gap-2">
                         <i class="bi bi-building-add fs-5"></i>
                         <div>
                             <div class="fw-semibold" style="font-size:14px;">Configure Room</div>
                             <div class="fine-print text-muted">Set up desks, rows and bench seats</div>
                         </div>
                     </a>
-                    <a href="reports.html" class="btn btn-outline-secondary text-start p-2 d-flex align-items-center gap-2">
+                    <a href="pages/reports.html" class="btn btn-outline-secondary text-start p-2 d-flex align-items-center gap-2">
                         <i class="bi bi-printer fs-5"></i>
                         <div>
                             <div class="fw-semibold" style="font-size:14px;">Print Documents</div>
@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         badge: 'Institutional Edition',
         activeNav: 'dashboard',
         actionHtml: `
-            <a href="allocations.html?action=new" class="btn-apple-primary text-decoration-none">
+            <a href="pages/allocations.html?action=new" class="btn-apple-primary text-decoration-none">
                 <i class="bi bi-plus-lg"></i> <span>New Allocation</span>
             </a>
         `
@@ -209,13 +209,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </td>
                     <td class="text-end">
                         <div class="btn-group">
-                            <a href="allocations.html?edit_id=${ev.id}" class="btn btn-sm btn-outline-primary" title="Open Seating Editor">
+                            <a href="pages/allocations.html?edit_id=${ev.id}" class="btn btn-sm btn-outline-primary" title="Open Seating Editor">
                                 <i class="bi bi-grid-3x3"></i> Editor
                             </a>
-                            <a href="reports/seat-plan.html?event_id=${ev.id}" target="_blank" class="btn btn-sm btn-outline-secondary" title="View Printable Seat Plan">
+                            <a href="pages/reports/seat-plan.html?event_id=${ev.id}" target="_blank" class="btn btn-sm btn-outline-secondary" title="View Printable Seat Plan">
                                 <i class="bi bi-printer"></i>
                             </a>
-                            <a href="reports/door-chart.html?event_id=${ev.id}" target="_blank" class="btn btn-sm btn-outline-secondary" title="View Door Chart">
+                            <a href="pages/reports/door-chart.html?event_id=${ev.id}" target="_blank" class="btn btn-sm btn-outline-secondary" title="View Door Chart">
                                 <i class="bi bi-door-closed"></i>
                             </a>
                         </div>

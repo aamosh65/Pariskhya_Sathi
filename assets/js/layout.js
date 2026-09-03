@@ -2,10 +2,21 @@
 // Injects Apple Design System Header, Frosted Sub-Nav, Toast system, and Footer
 
 const AppLayout = (() => {
-    // Determine relative root path to /api/ and pages
-    const isReportsSubdir = window.location.pathname.includes('/reports/');
-    const basePath = isReportsSubdir ? '../' : './';
-    const apiPath = isReportsSubdir ? '../api/' : './api/';
+    // Determine dynamic relative root path to /api/ and /pages/
+    const normalizedPath = window.location.pathname.replace(/\\/g, '/').toLowerCase();
+    let rootPath = './';
+    let pagesPath = 'pages/';
+    let apiPath = 'api/';
+
+    if (normalizedPath.includes('/pages/reports/')) {
+        rootPath = '../../';
+        pagesPath = '../';
+        apiPath = '../../api/';
+    } else if (normalizedPath.includes('/pages/')) {
+        rootPath = '../';
+        pagesPath = './';
+        apiPath = '../api/';
+    }
 
     /**
      * Centralized async API request wrapper.
@@ -58,21 +69,21 @@ const AppLayout = (() => {
             headerContainer.innerHTML = `
             <nav class="global-nav">
                 <div class="container-fluid d-flex justify-content-between align-items-center px-lg-4">
-                    <a href="${basePath}index.html" class="brand-title text-decoration-none">
+                    <a href="${rootPath}index.html" class="brand-title text-decoration-none">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
                         <span>Parikshya Sathi</span>
                     </a>
 
                     <div class="d-none d-md-flex align-items-center gap-1">
-                        <a href="${basePath}index.html" class="nav-link-item ${activeNav === 'dashboard' ? 'active' : ''}">Dashboard</a>
-                        <a href="${basePath}students.html" class="nav-link-item ${activeNav === 'students' ? 'active' : ''}">Students</a>
-                        <a href="${basePath}rooms.html" class="nav-link-item ${activeNav === 'rooms' ? 'active' : ''}">Rooms & Layouts</a>
-                        <a href="${basePath}allocations.html" class="nav-link-item ${activeNav === 'allocations' ? 'active' : ''}">Allocations</a>
-                        <a href="${basePath}reports.html" class="nav-link-item ${activeNav === 'reports' ? 'active' : ''}">Print & Reports</a>
+                        <a href="${rootPath}index.html" class="nav-link-item ${activeNav === 'dashboard' ? 'active' : ''}">Dashboard</a>
+                        <a href="${pagesPath}students.html" class="nav-link-item ${activeNav === 'students' ? 'active' : ''}">Students</a>
+                        <a href="${pagesPath}rooms.html" class="nav-link-item ${activeNav === 'rooms' ? 'active' : ''}">Rooms & Layouts</a>
+                        <a href="${pagesPath}allocations.html" class="nav-link-item ${activeNav === 'allocations' ? 'active' : ''}">Allocations</a>
+                        <a href="${pagesPath}reports.html" class="nav-link-item ${activeNav === 'reports' ? 'active' : ''}">Print & Reports</a>
                     </div>
 
                     <div class="d-flex align-items-center gap-2">
-                        <a href="${basePath}academic-years.html" class="btn-apple-dark text-decoration-none" title="Switch Academic Year">
+                        <a href="${pagesPath}academic-years.html" class="btn-apple-dark text-decoration-none" title="Switch Academic Year">
                             <i class="bi bi-calendar3"></i>
                             <span id="nav-active-year-label">AY: Loading...</span>
                         </a>
@@ -114,33 +125,33 @@ const AppLayout = (() => {
                         <div class="col-6 col-md-2">
                             <div class="caption-strong mb-2">Academic Data</div>
                             <ul class="list-unstyled fine-print d-flex flex-column gap-1">
-                                <li><a href="${basePath}students.html" class="text-secondary text-decoration-none">Students Directory</a></li>
-                                <li><a href="${basePath}students.html?action=import" class="text-secondary text-decoration-none">Bulk CSV Import</a></li>
-                                <li><a href="${basePath}students.html?action=symbols" class="text-secondary text-decoration-none">Symbol Numbers</a></li>
-                                <li><a href="${basePath}academic-years.html" class="text-secondary text-decoration-none">Academic Years</a></li>
+                                <li><a href="${pagesPath}students.html" class="text-secondary text-decoration-none">Students Directory</a></li>
+                                <li><a href="${pagesPath}students.html?action=import" class="text-secondary text-decoration-none">Bulk CSV Import</a></li>
+                                <li><a href="${pagesPath}students.html?action=symbols" class="text-secondary text-decoration-none">Symbol Numbers</a></li>
+                                <li><a href="${pagesPath}academic-years.html" class="text-secondary text-decoration-none">Academic Years</a></li>
                             </ul>
                         </div>
                         <div class="col-6 col-md-2">
                             <div class="caption-strong mb-2">Halls & Layouts</div>
                             <ul class="list-unstyled fine-print d-flex flex-column gap-1">
-                                <li><a href="${basePath}rooms.html" class="text-secondary text-decoration-none">Examination Rooms</a></li>
-                                <li><a href="${basePath}rooms.html?action=new" class="text-secondary text-decoration-none">Add New Hall</a></li>
+                                <li><a href="${pagesPath}rooms.html" class="text-secondary text-decoration-none">Examination Rooms</a></li>
+                                <li><a href="${pagesPath}rooms.html?action=new" class="text-secondary text-decoration-none">Add New Hall</a></li>
                             </ul>
                         </div>
                         <div class="col-6 col-md-2">
                             <div class="caption-strong mb-2">Allocations</div>
                             <ul class="list-unstyled fine-print d-flex flex-column gap-1">
-                                <li><a href="${basePath}allocations.html" class="text-secondary text-decoration-none">Scheduled Events</a></li>
-                                <li><a href="${basePath}allocations.html?action=new" class="text-secondary text-decoration-none">New Allocation Wizard</a></li>
+                                <li><a href="${pagesPath}allocations.html" class="text-secondary text-decoration-none">Scheduled Events</a></li>
+                                <li><a href="${pagesPath}allocations.html?action=new" class="text-secondary text-decoration-none">New Allocation Wizard</a></li>
                             </ul>
                         </div>
                         <div class="col-6 col-md-2">
                             <div class="caption-strong mb-2">Print & Reports</div>
                             <ul class="list-unstyled fine-print d-flex flex-column gap-1">
-                                <li><a href="${basePath}reports.html" class="text-secondary text-decoration-none">Reports Hub</a></li>
-                                <li><a href="${basePath}reports/door-chart.html" class="text-secondary text-decoration-none">Door Charts</a></li>
-                                <li><a href="${basePath}reports/seat-plan.html" class="text-secondary text-decoration-none">Room Seat Plans</a></li>
-                                <li><a href="${basePath}reports/attendance.html" class="text-secondary text-decoration-none">Attendance Sheets</a></li>
+                                <li><a href="${pagesPath}reports.html" class="text-secondary text-decoration-none">Reports Hub</a></li>
+                                <li><a href="${pagesPath}reports/door-chart.html" class="text-secondary text-decoration-none">Door Charts</a></li>
+                                <li><a href="${pagesPath}reports/seat-plan.html" class="text-secondary text-decoration-none">Room Seat Plans</a></li>
+                                <li><a href="${pagesPath}reports/attendance.html" class="text-secondary text-decoration-none">Attendance Sheets</a></li>
                             </ul>
                         </div>
                     </div>
@@ -193,7 +204,8 @@ const AppLayout = (() => {
         api,
         init,
         formatDate,
-        basePath,
+        rootPath,
+        pagesPath,
         apiPath
     };
 })();
