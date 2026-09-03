@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rooms & Layouts — Parikshya Sathi</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Apple Design System CSS -->
+    <link rel="stylesheet" href="assets/css/design-system.css">
+</head>
+<body>
+
+<div id="app-header"></div>
+
+<main class="container-fluid px-lg-4 py-4" style="max-width: 1440px;">
+    <!-- Stats Banner -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="stat-card">
+                <div class="stat-label"><i class="bi bi-door-open me-1"></i> Total Halls</div>
+                <div class="stat-value" id="room-total-count">—</div>
+                <div class="stat-desc">Configured for active academic year</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="stat-card">
+                <div class="stat-label"><i class="bi bi-grid-3x3 me-1"></i> Total Exam Capacity</div>
+                <div class="stat-value" id="room-total-capacity">—</div>
+                <div class="stat-desc">Available physical seating</div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="stat-card">
+                <div class="stat-label"><i class="bi bi-building me-1"></i> Buildings & Wings</div>
+                <div class="stat-value" id="room-building-count">—</div>
+                <div class="stat-desc">Distinct institutional venues</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rooms Catalog Cards -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="display-md mb-0 fs-4">Configured Examination Halls</h3>
+        <div class="fine-print text-muted">Click <strong>Visualizer</strong> to inspect or toggle seat availability.</div>
+    </div>
+
+    <div class="row g-4" id="rooms-grid">
+        <div class="col-12 text-center text-muted py-5">
+            <div class="spinner-border spinner-border-sm text-primary me-2"></div> Loading examination rooms...
+        </div>
+    </div>
+</main>
+
+<div id="app-footer"></div>
+
+<!-- 1. Create Room & Physical Layout Configurator Modal -->
+<div class="modal fade" id="roomModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content apple-card border-0 p-3">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title tagline" id="roomModalTitle">Configure Examination Room</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <form id="room-layout-form">
+                    <input type="hidden" id="room-id" name="id">
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-5">
+                            <label class="form-label fine-print fw-bold">Room Name *</label>
+                            <input type="text" id="room-name" name="room_name" class="form-control" placeholder="e.g. Examination Hall C" required>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label fine-print fw-bold">Building / Block *</label>
+                            <input type="text" id="room-building" name="building" class="form-control" value="Main Building" required>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label fine-print fw-bold">Floor</label>
+                            <input type="text" id="room-floor" name="floor" class="form-control" value="1st Floor" required>
+                        </div>
+                    </div>
+
+                    <div id="layout-matrix-fields" class="p-3 mb-3 rounded-3" style="background-color: var(--surface-pearl); border: 1px solid var(--hairline);">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="body-strong fs-6">Physical Grid & Bench Layout</span>
+                            <span id="calculated-capacity-badge" class="badge-apple badge-apple-primary">40 Seats</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-4">
+                                <label class="form-label fine-print fw-bold">Rows (Desks depth)</label>
+                                <input type="number" id="room-rows" name="rows_count" class="form-control" value="5" min="1" max="20" required>
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label fine-print fw-bold">Columns (Desks width)</label>
+                                <input type="number" id="room-cols" name="cols_count" class="form-control" value="4" min="1" max="15" required>
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label fine-print fw-bold">Seats per Bench</label>
+                                <select id="room-seats-bench" name="default_seats_per_bench" class="form-select">
+                                    <option value="1">1 (Single Desk)</option>
+                                    <option value="2" selected>2 (Standard 2-Seater)</option>
+                                    <option value="3">3 (3-Seater Bench)</option>
+                                    <option value="4">4 (Wide Bench)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Live Layout Mini Preview -->
+                        <div class="mt-3">
+                            <div class="caption text-muted mb-2">Live Grid Preview:</div>
+                            <div id="room-layout-preview" class="p-3 border rounded bg-white" style="max-height: 200px; overflow: auto;"></div>
+                        </div>
+                    </div>
+
+                    <div class="text-end pt-2">
+                        <button type="button" class="btn-apple-ghost me-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-apple-primary" id="btn-save-room">Save Room</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Room Layout Visualizer & Seat Status Modal -->
+<div class="modal fade" id="visualizerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content apple-card border-0 p-3">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h5 class="modal-title tagline" id="visualizer-room-name">Room Layout Visualizer</h5>
+                    <div class="caption text-muted" id="visualizer-room-desc">Inspect physical furniture and toggle damaged or disabled seats</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <div class="room-grid-canvas" id="visualizer-canvas-container">
+                    <div class="text-center text-muted py-5">Loading schematic...</div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn-apple-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Shared Scripts -->
+<script src="assets/js/layout.js"></script>
+<script src="assets/js/app.js"></script>
+
+<script>
+let roomModalInstance = null;
+let visualizerModalInstance = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    AppLayout.init({
+        heading: 'Examination Rooms & Layouts',
+        badge: 'Halls Configurator',
+        activeNav: 'rooms',
+        actionHtml: `
+            <button class="btn-apple-primary" onclick="openCreateRoomModal()">
+                <i class="bi bi-building-add me-1"></i> Add New Hall
+            </button>
+        `
+    });
+
+    roomModalInstance = new bootstrap.Modal(document.getElementById('roomModal'));
+    visualizerModalInstance = new bootstrap.Modal(document.getElementById('visualizerModal'));
+
+    // Check if URL asked for new room
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('action') === 'new') {
+        openCreateRoomModal();
+    }
+
+    await loadRooms();
+
+    document.getElementById('room-layout-form').addEventListener('submit', handleRoomSubmit);
+});
+
+async function loadRooms() {
+    try {
+        const res = await AppLayout.api('rooms.php');
+        const rooms = res.data.rooms || [];
+
+        // Update Stats
+        const totalCapacity = rooms.reduce((acc, r) => acc + parseInt(r.capacity || 0, 10), 0);
+        const buildings = new Set(rooms.map(r => r.building));
+
+        document.getElementById('room-total-count').innerText = rooms.length;
+        document.getElementById('room-total-capacity').innerText = totalCapacity.toLocaleString() + ' Seats';
+        document.getElementById('room-building-count').innerText = buildings.size;
+
+        const grid = document.getElementById('rooms-grid');
+        if (rooms.length === 0) {
+            grid.innerHTML = `<div class="col-12 text-center text-muted py-5">No rooms configured yet. Click <strong>Add New Hall</strong> to configure your examination rooms.</div>`;
+            return;
+        }
+
+        grid.innerHTML = rooms.map(r => `
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="apple-card h-100 d-flex flex-column justify-content-between p-4">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge-apple badge-apple-primary">${r.capacity} Seats</span>
+                            <span class="badge ${r.status === 'active' ? 'bg-success-subtle text-success' : 'bg-secondary'} rounded-pill" style="font-size:11px;">
+                                ${r.status === 'active' ? 'Active' : 'Inactive'}
+                            </span>
+                        </div>
+                        <h4 class="display-md mb-1 fs-5 text-dark">${r.room_name}</h4>
+                        <div class="caption text-muted mb-3">
+                            <i class="bi bi-geo-alt me-1"></i> ${r.building}, ${r.floor}
+                        </div>
+
+                        <div class="p-2 mb-3 rounded-2 fine-print text-muted" style="background-color: var(--surface-pearl);">
+                            <div><strong>Matrix:</strong> ${r.rows_count} Rows &times; ${r.cols_count} Columns (${r.bench_count || (r.rows_count * r.cols_count)} Desks)</div>
+                            <div><strong>Benches:</strong> ${r.default_seats_per_bench}-Seater layout (${r.active_seats} Active Seats)</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-between pt-2 border-top border-secondary-subtle">
+                        <button class="btn btn-sm btn-outline-primary flex-fill" onclick="openVisualizer(${r.id})">
+                            <i class="bi bi-grid-3x3 me-1"></i> Visualizer
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="openEditRoomModal(${r.id}, '${r.room_name}', '${r.building}', '${r.floor}', '${r.status}')" title="Edit Info">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteRoom(${r.id}, '${r.room_name}')" title="Delete Hall">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+    } catch (e) {
+        console.error('Failed to load rooms', e);
+    }
+}
+
+function openCreateRoomModal() {
+    document.getElementById('roomModalTitle').innerText = 'Configure New Examination Room';
+    document.getElementById('room-id').value = '';
+    document.getElementById('room-layout-form').reset();
+    document.getElementById('layout-matrix-fields').style.display = 'block';
+    roomModalInstance.show();
+    setTimeout(() => {
+        if (window.initRoomBuilder) initRoomBuilder();
+    }, 150);
+}
+
+function openEditRoomModal(id, name, building, floor, status) {
+    document.getElementById('roomModalTitle').innerText = 'Edit Room Details';
+    document.getElementById('room-id').value = id;
+    document.getElementById('room-name').value = name;
+    document.getElementById('room-building').value = building;
+    document.getElementById('room-floor').value = floor;
+    document.getElementById('layout-matrix-fields').style.display = 'none'; // Keep physical seat structure intact on edit
+    roomModalInstance.show();
+}
+
+async function handleRoomSubmit(e) {
+    e.preventDefault();
+    const id = document.getElementById('room-id').value;
+    const isEdit = Boolean(id);
+
+    const payload = {
+        action: isEdit ? 'update' : 'create',
+        id: isEdit ? parseInt(id, 10) : null,
+        room_name: document.getElementById('room-name').value.trim(),
+        building: document.getElementById('room-building').value.trim(),
+        floor: document.getElementById('room-floor').value.trim(),
+    };
+
+    if (!isEdit) {
+        payload.rows_count = parseInt(document.getElementById('room-rows').value, 10);
+        payload.cols_count = parseInt(document.getElementById('room-cols').value, 10);
+        payload.default_seats_per_bench = parseInt(document.getElementById('room-seats-bench').value, 10);
+    }
+
+    try {
+        const res = await AppLayout.api('rooms.php', 'POST', payload);
+        roomModalInstance.hide();
+        showToast('success', res.message);
+        loadRooms();
+    } catch (e) {}
+}
+
+async function deleteRoom(id, name) {
+    if (!confirm(`Are you sure you want to remove examination room "${name}"?`)) return;
+    try {
+        const res = await AppLayout.api('rooms.php', 'POST', { action: 'delete', id });
+        showToast('success', res.message);
+        loadRooms();
+    } catch (e) {}
+}
+
+async function openVisualizer(roomId) {
+    visualizerModalInstance.show();
+    const container = document.getElementById('visualizer-canvas-container');
+    container.innerHTML = `<div class="text-center text-muted py-5"><div class="spinner-border spinner-border-sm text-primary me-2"></div> Loading room schematic...</div>`;
+
+    try {
+        const res = await AppLayout.api(`rooms.php?id=${roomId}`);
+        const room = res.data.room;
+        const furniture = res.data.furniture || [];
+        const seats = res.data.seats || [];
+
+        document.getElementById('visualizer-room-name').innerText = `${room.room_name} (${room.capacity} Seats)`;
+        document.getElementById('visualizer-room-desc').innerText = `${room.building}, ${room.floor} • ${room.rows_count} Rows × ${room.cols_count} Cols • Click individual seats to toggle damaged/disabled`;
+
+        // Group seats by furniture_id
+        const seatsByFurn = {};
+        seats.forEach(s => {
+            if (!seatsByFurn[s.furniture_id]) seatsByFurn[s.furniture_id] = [];
+            seatsByFurn[s.furniture_id].push(s);
+        });
+
+        let html = `
+        <div class="teacher-podium mb-4">
+            <i class="bi bi-person-workspace me-1"></i> Teacher Podium / Blackboard (Front of Hall)
+        </div>
+        <div class="d-flex flex-column gap-3">
+        `;
+
+        for (let r = 1; r <= room.rows_count; r++) {
+            html += `<div class="d-flex gap-3 justify-content-center align-items-center">
+                <span class="badge bg-secondary rounded-pill" style="font-size:11px; width:55px;">Row ${r}</span>
+                <div class="row g-2 flex-grow-1">`;
+
+            for (let c = 1; c <= room.cols_count; c++) {
+                const f = furniture.find(item => parseInt(item.row_num, 10) === r && parseInt(item.col_num, 10) === c);
+                const fSeats = f ? (seatsByFurn[f.id] || []) : [];
+
+                html += `<div class="col">
+                    <div class="furniture-bench p-2">
+                        <div class="fine-print fw-bold text-center mb-1 text-muted">Desk ${r}-${c}</div>
+                        <div class="d-flex gap-1 justify-content-center">`;
+
+                fSeats.forEach(st => {
+                    const isDamaged = st.status === 'damaged' || st.status === 'disabled';
+                    html += `
+                    <div class="seat-slot p-2 flex-fill text-center ${isDamaged ? 'disabled-seat' : ''}" 
+                         style="cursor: pointer; min-height: 48px;" 
+                         onclick="toggleSeatStatus(${st.id}, '${st.status}', ${roomId})" 
+                         title="${st.seat_identifier} (${st.status}) - Click to toggle">
+                        <div class="fine-print fw-bold text-muted">${st.seat_identifier}</div>
+                        <span class="badge ${isDamaged ? 'bg-danger' : 'bg-success'} rounded-pill" style="font-size:9px;">
+                            ${isDamaged ? 'Out' : 'Active'}
+                        </span>
+                    </div>
+                    `;
+                });
+
+                html += `</div></div></div>`;
+            }
+
+            html += `</div></div>`;
+        }
+
+        html += `</div>`;
+        container.innerHTML = html;
+
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function toggleSeatStatus(seatId, currentStatus, roomId) {
+    const nextStatus = currentStatus === 'active' ? 'damaged' : 'active';
+    try {
+        await AppLayout.api('rooms.php', 'POST', {
+            action: 'toggle_seat',
+            seat_id: seatId,
+            status: nextStatus
+        });
+        showToast('info', `Seat marked ${nextStatus}.`);
+        openVisualizer(roomId);
+        loadRooms();
+    } catch (e) {}
+}
+</script>
+
+</body>
+</html>

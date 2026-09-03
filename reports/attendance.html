@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invigilator Attendance Sheet — Parikshya Sathi</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Apple Design System CSS -->
+    <link rel="stylesheet" href="../assets/css/design-system.css">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .page-break { page-break-after: always; break-after: page; }
+            body { background-color: #fff !important; }
+            .apple-card { border: none !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important; }
+            table { font-size: 11px !important; }
+            th, td { padding: 4px 6px !important; }
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container py-4" style="max-width: 1100px;">
+    <!-- Top Action Bar (hidden in print) -->
+    <div class="no-print apple-card p-3 mb-4 d-flex justify-content-between align-items-center" style="background-color: var(--surface-pearl);">
+        <div class="d-flex align-items-center gap-2">
+            <a href="../reports.html" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+            <select id="attendance-room-select" class="form-select form-select-sm" style="width: 220px;"></select>
+        </div>
+        <button onclick="window.print()" class="btn-apple-primary btn-sm">
+            <i class="bi bi-printer me-1"></i> Print / Save PDF
+        </button>
+    </div>
+
+    <!-- Printable Attendance Sheet Card -->
+    <div class="apple-card p-4 page-break bg-white" style="border: 2px solid var(--hairline);">
+        <!-- Official Institutional Header -->
+        <div class="text-center pb-3 mb-3 border-bottom border-2 border-dark">
+            <h3 class="fw-bold text-uppercase mb-1 fs-5">Academic Examination Board</h3>
+            <h4 class="fw-bold mb-1 fs-6">INVIGILATOR ATTENDANCE & ANSWER BOOK SHEET</h4>
+            <div class="caption text-dark" id="attendance-event-meta">Loading examination session...</div>
+        </div>
+
+        <!-- Hall & Session Info Strip -->
+        <div class="row g-2 p-2 mb-3 rounded-2 bg-light border text-dark fine-print">
+            <div class="col-4">
+                <strong>Examination Hall:</strong> <span id="att-room-name">—</span>
+            </div>
+            <div class="col-4">
+                <strong>Date & Time:</strong> <span id="att-datetime">—</span>
+            </div>
+            <div class="col-4 text-end">
+                <strong>Total Allocated:</strong> <span id="att-total-students" class="fw-bold text-primary">0</span>
+            </div>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered table-sm align-middle" style="font-size: 12px;">
+                <thead class="table-light border-dark">
+                    <tr>
+                        <th style="width: 35px;" class="text-center">S.N.</th>
+                        <th style="width: 100px;">Symbol No</th>
+                        <th style="width: 60px;">Roll No</th>
+                        <th>Student Name</th>
+                        <th style="width: 80px;">Program</th>
+                        <th style="width: 50px;">Sem</th>
+                        <th>Paper</th>
+                        <th style="width: 140px;">Answer Book No.</th>
+                        <th style="width: 130px;">Student Signature</th>
+                    </tr>
+                </thead>
+                <tbody id="attendance-tbody">
+                    <tr><td colspan="9" class="text-center text-muted py-4">Loading student roster...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Invigilator Certification Signoff Block -->
+        <div class="pt-3 border-top border-dark">
+            <div class="row gy-3 fine-print text-dark">
+                <div class="col-4">
+                    <div><strong>Total Present:</strong> ____________________</div>
+                </div>
+                <div class="col-4">
+                    <div><strong>Total Absent:</strong> ____________________</div>
+                </div>
+                <div class="col-4 text-end">
+                    <div><strong>Invigilator's Signature:</strong> ____________________</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Shared Scripts -->
+<script src="../assets/js/layout.js"></script>
+
+<script>
+let allEventRooms = [];
+let activeEventId = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    activeEventId = urlParams.get('event_id') || 1;
+    const roomId = urlParams.get('room_id') || null;
+
+    await loadAttendance(activeEventId, roomId);
+
+    document.getElementById('attendance-room-select').addEventListener('change', (e) => {
+        loadAttendance(activeEventId, e.target.value);
+    });
+});
+
+async function loadAttendance(eventId, roomId) {
+    const query = new URLSearchParams({ event_id: eventId, type: 'attendance' });
+    if (roomId) query.set('room_id', roomId);
+
+    try {
+        const res = await AppLayout.api(`reports.php?${query.toString()}`);
+        const data = res.data;
+        const event = data.event;
+        const rooms = data.rooms || [];
+        const attendees = data.attendees || [];
+        const selectedRoomId = data.selected_room_id;
+
+        document.title = `Attendance Sheet — ${event.event_name}`;
+        document.getElementById('attendance-event-meta').innerText = `${event.event_name} • AY 2026/27`;
+        document.getElementById('att-datetime').innerText = `${AppLayout.formatDate(event.event_date)} (${event.start_time} - ${event.end_time})`;
+
+        // Populate Room Selector
+        const select = document.getElementById('attendance-room-select');
+        select.innerHTML = `<option value="">All Rooms Combined (${attendees.length} Students)</option>` + 
+            rooms.map(r => `<option value="${r.id}" ${parseInt(selectedRoomId, 10) === parseInt(r.id, 10) ? 'selected' : ''}>${r.room_name}</option>`).join('');
+
+        const currentRoomName = rooms.find(r => parseInt(r.id, 10) === parseInt(selectedRoomId, 10))?.room_name || 'All Examination Rooms';
+        document.getElementById('att-room-name').innerText = currentRoomName;
+        document.getElementById('att-total-students').innerText = attendees.length;
+
+        const tbody = document.getElementById('attendance-tbody');
+        if (attendees.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">No students allocated for this hall.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = attendees.map((a, i) => `
+            <tr>
+                <td class="text-center fw-bold text-muted">${i + 1}</td>
+                <td class="font-monospace fw-bold text-dark">${a.symbol_no_snapshot}</td>
+                <td>${a.roll_no || '—'}</td>
+                <td class="fw-semibold text-dark">${a.student_name_snapshot}</td>
+                <td><span class="badge-apple badge-apple-primary py-0 px-1" style="font-size:10px;">${a.program_code_snapshot}</span></td>
+                <td>Sem ${a.semester_snapshot}</td>
+                <td class="fine-print text-muted">${a.subject_name_snapshot || 'Core Paper'}</td>
+                <td class="border-bottom border-secondary text-center text-muted" style="min-width:120px;"></td>
+                <td class="border-bottom border-secondary text-center text-muted" style="min-width:110px;"></td>
+            </tr>
+        `).join('');
+
+    } catch (e) {
+        console.error(e);
+    }
+}
+</script>
+
+</body>
+</html>

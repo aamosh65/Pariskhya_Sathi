@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Documentation — Parikshya Sathi</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Apple Design System CSS -->
+    <link rel="stylesheet" href="assets/css/design-system.css">
+</head>
+<body>
+
+<div id="app-header"></div>
+
+<main class="container-fluid px-lg-4 py-4" style="max-width: 1440px;">
+    <!-- Active Event Selector -->
+    <div class="apple-card mb-4 p-3">
+        <div class="row align-items-center gy-3">
+            <div class="col-12 col-md-7">
+                <label class="form-label fine-print fw-bold mb-1">Select Examination Allocation Session</label>
+                <select id="reports-event-select" class="form-select"></select>
+            </div>
+            <div class="col-12 col-md-5 text-md-end">
+                <button class="btn-apple-primary" onclick="exportAllocationCsv()">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export Allocation CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 Core Institutional Report Cards -->
+    <div class="row g-4 mb-4">
+        <!-- 1. Door Chart Card -->
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="apple-card h-100 d-flex flex-column justify-content-between p-4">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2 text-primary">
+                        <i class="bi bi-door-closed fs-3"></i>
+                        <span class="tagline fs-5">Door Chart</span>
+                    </div>
+                    <p class="fine-print text-muted mb-3">
+                        Entrance notice posted on examination hall doors displaying symbol number ranges and student counts per cohort.
+                    </p>
+                </div>
+                <button class="btn-apple-secondary w-100" onclick="launchReport('door-chart.html')">
+                    <i class="bi bi-printer me-1"></i> Open Door Chart
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. Room Seat Plan Card -->
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="apple-card h-100 d-flex flex-column justify-content-between p-4">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2 text-primary">
+                        <i class="bi bi-grid-3x3-gap fs-3"></i>
+                        <span class="tagline fs-5">Seat Plan</span>
+                    </div>
+                    <p class="fine-print text-muted mb-3">
+                        Visual floor plan of the hall layout displaying desk numbers, student names, symbol numbers, and program badges.
+                    </p>
+                </div>
+                <button class="btn-apple-secondary w-100" onclick="launchReport('seat-plan.html')">
+                    <i class="bi bi-printer me-1"></i> Open Seat Plan
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. Invigilator Attendance Sheet -->
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="apple-card h-100 d-flex flex-column justify-content-between p-4">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2 text-primary">
+                        <i class="bi bi-card-checklist fs-3"></i>
+                        <span class="tagline fs-5">Attendance Sheet</span>
+                    </div>
+                    <p class="fine-print text-muted mb-3">
+                        Official hall roster with student details, symbol numbers, blank answer sheet columns, and invigilator signature lines.
+                    </p>
+                </div>
+                <button class="btn-apple-secondary w-100" onclick="launchReport('attendance.html')">
+                    <i class="bi bi-printer me-1"></i> Open Attendance
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. Summary & Utilization -->
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="apple-card h-100 d-flex flex-column justify-content-between p-4">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2 text-primary">
+                        <i class="bi bi-pie-chart fs-3"></i>
+                        <span class="tagline fs-5">Session Summary</span>
+                    </div>
+                    <p class="fine-print text-muted mb-3">
+                        Executive statistical breakdown of seated cohorts, room utilization percentages, and capacity allocation metrics.
+                    </p>
+                </div>
+                <button class="btn-apple-secondary w-100" onclick="scrollToSummary()">
+                    <i class="bi bi-graph-up me-1"></i> View Statistics
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Details Section -->
+    <div id="summary-section" class="apple-card">
+        <h4 class="display-md mb-3 fs-5">Session Allocation Summary</h4>
+        <div class="row g-4">
+            <div class="col-12 col-lg-6">
+                <div class="caption-strong mb-2">Program & Subject Breakdown</div>
+                <div class="table-responsive">
+                    <table class="table-apple">
+                        <thead>
+                            <tr>
+                                <th>Program</th>
+                                <th>Subject Paper</th>
+                                <th>Sem</th>
+                                <th class="text-end">Students Seated</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summary-programs-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="caption-strong mb-2">Room Capacity & Utilization</div>
+                <div class="table-responsive">
+                    <table class="table-apple">
+                        <thead>
+                            <tr>
+                                <th>Hall / Room</th>
+                                <th>Capacity</th>
+                                <th>Seated</th>
+                                <th class="text-end">Utilization</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summary-rooms-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div id="app-footer"></div>
+
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Shared Scripts -->
+<script src="assets/js/layout.js"></script>
+<script src="assets/js/app.js"></script>
+
+<script>
+let currentEventId = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    AppLayout.init({
+        heading: 'Examination Reports & Print Hub',
+        badge: 'A4 Print Ready',
+        activeNav: 'reports'
+    });
+
+    await loadEventOptions();
+
+    document.getElementById('reports-event-select').addEventListener('change', (e) => {
+        currentEventId = e.target.value;
+        loadSummaryData(currentEventId);
+    });
+});
+
+async function loadEventOptions() {
+    try {
+        const res = await AppLayout.api('allocations.php');
+        const events = res.data.events || [];
+        const select = document.getElementById('reports-event-select');
+
+        if (events.length === 0) {
+            select.innerHTML = '<option value="">No allocation sessions found</option>';
+            return;
+        }
+
+        select.innerHTML = events.map(ev => `
+            <option value="${ev.id}">
+                ${ev.event_name} (${AppLayout.formatDate(ev.event_date)}) — v${ev.version_number || 1} [${ev.allocated_count} Students]
+            </option>
+        `).join('');
+
+        currentEventId = select.value;
+        await loadSummaryData(currentEventId);
+
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function loadSummaryData(eventId) {
+    if (!eventId) return;
+    try {
+        const res = await AppLayout.api(`reports.php?event_id=${eventId}&type=summary`);
+        const data = res.data;
+
+        // Render Program breakdown
+        const progTbody = document.getElementById('summary-programs-tbody');
+        progTbody.innerHTML = (data.program_summary || []).map(p => `
+            <tr>
+                <td><span class="badge-apple badge-apple-primary">${p.program_code_snapshot}</span></td>
+                <td>${p.subject_name_snapshot || 'Core Paper'}</td>
+                <td>Sem ${p.semester_snapshot}</td>
+                <td class="text-end fw-bold">${p.count}</td>
+            </tr>
+        `).join('');
+
+        // Render Room Utilization
+        const roomTbody = document.getElementById('summary-rooms-tbody');
+        roomTbody.innerHTML = (data.room_utilization || []).map(r => {
+            const cap = parseInt(r.capacity, 10) || 1;
+            const seated = parseInt(r.seated_count, 10) || 0;
+            const pct = Math.round((seated / cap) * 100);
+            return `
+            <tr>
+                <td>
+                    <div class="fw-semibold">${r.room_name}</div>
+                    <div class="fine-print text-muted">${r.building}, ${r.floor}</div>
+                </td>
+                <td>${cap}</td>
+                <td class="fw-bold">${seated}</td>
+                <td class="text-end">
+                    <span class="badge ${pct >= 90 ? 'bg-success' : 'bg-primary'} rounded-pill" style="font-size:11px;">${pct}%</span>
+                </td>
+            </tr>
+            `;
+        }).join('');
+
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function launchReport(page) {
+    const select = document.getElementById('reports-event-select');
+    const evId = select.value;
+    if (!evId) {
+        showToast('warning', 'Please select an examination session first.');
+        return;
+    }
+    window.open(`reports/${page}?event_id=${evId}`, '_blank');
+}
+
+function scrollToSummary() {
+    document.getElementById('summary-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function exportAllocationCsv() {
+    const evId = document.getElementById('reports-event-select').value;
+    if (!evId) return;
+
+    try {
+        const res = await AppLayout.api(`reports.php?event_id=${evId}&type=attendance`);
+        const attendees = res.data.attendees || [];
+        if (attendees.length === 0) {
+            showToast('warning', 'No seated students found to export.');
+            return;
+        }
+
+        let csv = "Symbol No,Roll No,Student Name,Program,Semester,Subject,Room,Building,Floor\n";
+        attendees.forEach(a => {
+            csv += `"${a.symbol_no_snapshot}","${a.roll_no || ''}","${a.student_name_snapshot}","${a.program_code_snapshot}","${a.semester_snapshot}","${a.subject_name_snapshot || ''}","${a.room_name}","${a.building}","${a.floor}"\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', `Allocation_Session_${evId}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('success', 'CSV spreadsheet exported successfully.');
+    } catch (e) {
+        console.error(e);
+    }
+}
+</script>
+
+</body>
+</html>

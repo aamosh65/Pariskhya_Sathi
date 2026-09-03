@@ -12,6 +12,45 @@ function sanitize(?string $str): string {
 }
 
 /**
+ * Send a standardized JSON response and exit.
+ */
+function json_response(array $data, int $statusCode = 200): void {
+    http_response_code($statusCode);
+    header('Content-Type: application/json; charset=utf-8');
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization');
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+/**
+ * Handle CORS preflight options request.
+ */
+function handle_cors(): void {
+    if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization');
+        exit;
+    }
+}
+
+/**
+ * Retrieve JSON input payload or fallback to $_POST.
+ */
+function get_json_input(): array {
+    $raw = file_get_contents('php://input');
+    if (!empty($raw)) {
+        $json = json_decode($raw, true);
+        if (is_array($json)) {
+            return $json;
+        }
+    }
+    return $_POST ?? [];
+}
+
+/**
  * Set flash toast message.
  */
 function set_flash(string $type, string $message): void {

@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Allocations — Parikshya Sathi</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Apple Design System CSS -->
+    <link rel="stylesheet" href="assets/css/design-system.css">
+</head>
+<body>
+
+<div id="app-header"></div>
+
+<main class="container-fluid px-lg-4 py-4" style="max-width: 1440px;">
+    <!-- 1. Allocation Events Table Card -->
+    <div id="events-list-section" class="apple-card mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h3 class="display-md mb-0 fs-4">Examination Seating Allocations</h3>
+                <div class="caption text-muted">Intelligent automated seat plans & historical versions</div>
+            </div>
+            <button class="btn-apple-primary" onclick="openWizardModal()">
+                <i class="bi bi-magic me-1"></i> New Allocation
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table-apple" id="events-table">
+                <thead>
+                    <tr>
+                        <th>Examination Session</th>
+                        <th>Date & Time</th>
+                        <th>Capacity / Seated</th>
+                        <th>Plan Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="events-tbody">
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <div class="spinner-border spinner-border-sm text-primary me-2"></div> Loading allocation events...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 2. Interactive Seating Editor Section (Revealed when editing an event) -->
+    <div id="editor-section" class="d-none">
+        <div class="apple-card p-3 mb-4">
+            <div class="row align-items-center gy-3">
+                <div class="col-12 col-md-6">
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="closeEditor()" title="Back to All Events">
+                            <i class="bi bi-arrow-left"></i>
+                        </button>
+                        <h3 class="display-md mb-0 fs-5" id="editor-event-title">Interactive Seating Editor</h3>
+                    </div>
+                    <div class="caption text-muted ms-4 ps-2" id="editor-event-meta">Loading details...</div>
+                </div>
+                <div class="col-12 col-md-6 text-md-end d-flex flex-wrap align-items-center justify-content-md-end gap-2">
+                    <div id="editor-room-tabs" class="btn-group" role="group"></div>
+                    <button class="btn-apple-dark btn-sm" onclick="openVersionsModal()" title="View Version History">
+                        <i class="bi bi-clock-history me-1"></i> Versions
+                    </button>
+                    <a id="editor-print-seat-plan" href="#" target="_blank" class="btn-apple-secondary btn-sm text-decoration-none">
+                        <i class="bi bi-printer me-1"></i> Seat Plan
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Instructions Banner -->
+        <div class="apple-card p-3 mb-4 d-flex justify-content-between align-items-center" style="background-color: var(--surface-pearl);">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-arrows-move text-primary fs-5"></i>
+                <div>
+                    <div class="body-strong fs-6" id="swap-instructions">Click any occupied seat to begin moving or swapping students.</div>
+                    <div class="fine-print text-muted">Manual rearrangements are unrestricted and immediately update the active version.</div>
+                </div>
+            </div>
+            <span id="swap-status-badge" class="badge-apple badge-apple-warning d-none">
+                <i class="bi bi-cursor-fill me-1"></i> 1st Seat Selected
+            </span>
+        </div>
+
+        <!-- Room Seating Grid Canvas -->
+        <div class="apple-card" id="editor-canvas-container" data-seat-editor>
+            <div class="text-center text-muted py-5">Select a room to view seating grid.</div>
+        </div>
+    </div>
+</main>
+
+<div id="app-footer"></div>
+
+<!-- 1. Allocation Wizard Modal -->
+<div class="modal fade" id="wizardModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content apple-card border-0 p-3">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h5 class="modal-title tagline">Create Examination Allocation</h5>
+                    <div class="caption text-muted">Select student cohorts, assign available examination halls, and configure interleaving rules</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <form id="wizard-form">
+                    <!-- Session Details -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fine-print fw-bold">Examination Title *</label>
+                            <input type="text" id="wizard-event-name" class="form-control" value="Mid-Term Examination 2026" required>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label fine-print fw-bold">Date *</label>
+                            <input type="date" id="wizard-event-date" class="form-control" required>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <label class="form-label fine-print fw-bold">Start Time</label>
+                            <input type="text" id="wizard-start-time" class="form-control" value="09:00 AM">
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <label class="form-label fine-print fw-bold">End Time</label>
+                            <input type="text" id="wizard-end-time" class="form-control" value="12:00 PM">
+                        </div>
+                    </div>
+
+                    <!-- Step 1 & 2 Columns -->
+                    <div class="row g-4 mb-4">
+                        <!-- Cohorts Selector -->
+                        <div class="col-12 col-lg-6">
+                            <div class="p-3 rounded-3 h-100" style="background-color: var(--surface-pearl); border: 1px solid var(--hairline);">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="body-strong fs-6">1. Participating Cohorts</span>
+                                    <span class="badge-apple badge-apple-primary" id="wizard-students-tally">0 Students Selected</span>
+                                </div>
+                                <div id="wizard-cohorts-list" class="d-flex flex-column gap-2" style="max-height: 240px; overflow-y: auto;">
+                                    <div class="text-center text-muted py-3">Loading available cohorts...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rooms Selector -->
+                        <div class="col-12 col-lg-6">
+                            <div class="p-3 rounded-3 h-100" style="background-color: var(--surface-pearl); border: 1px solid var(--hairline);">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="body-strong fs-6">2. Examination Halls</span>
+                                    <span class="badge-apple badge-apple-primary" id="wizard-seats-tally">0 Seats Available</span>
+                                </div>
+                                <div id="wizard-rooms-list" class="d-flex flex-column gap-2" style="max-height: 240px; overflow-y: auto;">
+                                    <div class="text-center text-muted py-3">Loading available rooms...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Rules & Constraints -->
+                    <div class="p-3 rounded-3 mb-4" style="background-color: var(--surface-pearl); border: 1px solid var(--hairline);">
+                        <span class="body-strong fs-6 d-block mb-2">3. Anti-Cheating & Separation Rules</span>
+                        <div class="row g-3">
+                            <div class="col-12 col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="rule-program" checked>
+                                    <label class="form-check-label fine-print fw-bold" for="rule-program">Program Separation</label>
+                                    <div class="fine-print text-muted">Interleave distinct faculties on bench</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="rule-randomize" checked>
+                                    <label class="form-check-label fine-print fw-bold" for="rule-randomize">Randomize Seating Order</label>
+                                    <div class="fine-print text-muted">Shuffle students within each cohort</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="rule-relaxation" checked>
+                                    <label class="form-check-label fine-print fw-bold" for="rule-relaxation">Allow Draft Relaxation</label>
+                                    <div class="fine-print text-muted">Save unseated students without crashing</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary & Submit -->
+                    <div class="d-flex justify-content-between align-items-center pt-2">
+                        <div id="capacity-comparison-msg" class="fine-print text-muted">Select cohorts and rooms to compare capacity.</div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn-apple-ghost" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn-apple-primary" id="btn-generate-allocation">
+                                <i class="bi bi-lightning-charge me-1"></i> Generate Allocation
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Version History Modal -->
+<div class="modal fade" id="versionsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content apple-card border-0 p-3">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title tagline">Allocation Versions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <div class="table-responsive">
+                    <table class="table-apple">
+                        <thead>
+                            <tr>
+                                <th>Version</th>
+                                <th>Generated</th>
+                                <th>Seated / Total</th>
+                                <th>Notes</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="versions-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Shared Scripts -->
+<script src="assets/js/layout.js"></script>
+<script src="assets/js/app.js"></script>
+
+<script>
+let wizardModalInstance = null;
+let versionsModalInstance = null;
+let currentEventData = null;
+let activeEventId = null;
+let activeRoomId = null;
+let availableCohortsData = [];
+let availableRoomsData = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+    AppLayout.init({
+        heading: 'Examination Allocations',
+        badge: 'Allocation Engine',
+        activeNav: 'allocations',
+        actionHtml: `
+            <button class="btn-apple-primary" onclick="openWizardModal()">
+                <i class="bi bi-plus-lg me-1"></i> New Allocation
+            </button>
+        `
+    });
+
+    wizardModalInstance = new bootstrap.Modal(document.getElementById('wizardModal'));
+    versionsModalInstance = new bootstrap.Modal(document.getElementById('versionsModal'));
+
+    // Set today as default date
+    document.getElementById('wizard-event-date').value = new Date().toISOString().split('T')[0];
+
+    await loadAllocations();
+
+    // Check if redirected from dashboard with ?edit_id=
+    const urlParams = new URLSearchParams(window.location.search);
+    const editId = urlParams.get('edit_id');
+    const action = urlParams.get('action');
+
+    if (editId) {
+        openEditor(parseInt(editId, 10));
+    } else if (action === 'new') {
+        openWizardModal();
+    }
+
+    document.getElementById('wizard-form').addEventListener('submit', handleGenerateAllocation);
+});
+
+async function loadAllocations() {
+    try {
+        const res = await AppLayout.api('allocations.php');
+        const events = res.data.events || [];
+        availableCohortsData = res.data.available_cohorts || [];
+        availableRoomsData = res.data.rooms || [];
+
+        const tbody = document.getElementById('events-tbody');
+        if (events.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">No examination allocations created yet. Click <strong>New Allocation</strong> to begin.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = events.map(ev => {
+            const total = ev.version_students || 0;
+            const seated = ev.allocated_count || 0;
+            const pct = total > 0 ? Math.round((seated / total) * 100) : 0;
+            const isDraft = ev.status === 'draft' || ev.unallocated_count > 0;
+            return `
+            <tr>
+                <td>
+                    <div class="body-strong fs-6 text-dark">${ev.event_name}</div>
+                    <div class="fine-print text-muted">Version ${ev.version_number || 1} &bull; ${ev.notes || 'Exam Session'}</div>
+                </td>
+                <td>
+                    <div class="fw-medium">${AppLayout.formatDate(ev.event_date)}</div>
+                    <div class="fine-print text-muted">${ev.start_time} – ${ev.end_time}</div>
+                </td>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold">${seated}</span> <span class="text-muted">/ ${total}</span>
+                        <span class="badge ${pct === 100 ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'} rounded-pill" style="font-size:11px;">${pct}%</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="badge-apple ${isDraft ? 'badge-apple-warning' : 'badge-apple-success'}">${isDraft ? 'Draft' : 'Active'}</span>
+                </td>
+                <td class="text-end">
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-primary" onclick="openEditor(${ev.id})" title="Interactive Seating Editor">
+                            <i class="bi bi-grid-3x3"></i> Editor
+                        </button>
+                        <a href="reports/seat-plan.html?event_id=${ev.id}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Seat Plan Print">
+                            <i class="bi bi-printer"></i>
+                        </a>
+                        <a href="reports/door-chart.html?event_id=${ev.id}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Door Chart Print">
+                            <i class="bi bi-door-closed"></i>
+                        </a>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteEvent(${ev.id}, '${ev.event_name}')" title="Delete Allocation">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            `;
+        }).join('');
+
+    } catch (e) {
+        console.error('Failed to load events', e);
+    }
+}
+
+function openWizardModal() {
+    renderWizardCohortsAndRooms();
+    wizardModalInstance.show();
+}
+
+function renderWizardCohortsAndRooms() {
+    const cohortsList = document.getElementById('wizard-cohorts-list');
+    cohortsList.innerHTML = availableCohortsData.map((c, i) => `
+        <div class="d-flex align-items-center justify-content-between p-2 rounded bg-white border">
+            <div class="form-check">
+                <input class="form-check-input wizard-cohort-checkbox" type="checkbox" id="cohort-${i}" data-prog-id="${c.program_id}" data-sem="${c.semester}" data-count="${c.student_count}" onchange="updateCapacityTally()">
+                <label class="form-check-label fine-print fw-bold ms-1" for="cohort-${i}">
+                    ${c.program_code} — Sem ${c.semester}
+                </label>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <input type="text" class="form-control form-control-sm wizard-cohort-subject" style="width: 140px;" placeholder="Subject Name" value="Paper ${c.semester}">
+                <span class="badge-apple badge-apple-primary">${c.student_count}</span>
+            </div>
+        </div>
+    `).join('');
+
+    const roomsList = document.getElementById('wizard-rooms-list');
+    roomsList.innerHTML = availableRoomsData.map((r, i) => `
+        <div class="d-flex align-items-center justify-content-between p-2 rounded bg-white border">
+            <div class="form-check">
+                <input class="form-check-input wizard-room-checkbox" type="checkbox" id="room-${i}" data-room-id="${r.id}" data-capacity="${r.capacity}" checked onchange="updateCapacityTally()">
+                <label class="form-check-label fine-print fw-bold ms-1" for="room-${i}">
+                    ${r.room_name}
+                </label>
+                <div class="caption text-muted">${r.building}, ${r.floor}</div>
+            </div>
+            <span class="badge-apple badge-apple-primary">${r.capacity} Seats</span>
+        </div>
+    `).join('');
+
+    updateCapacityTally();
+}
+
+function updateCapacityTally() {
+    let totalStudents = 0;
+    document.querySelectorAll('.wizard-cohort-checkbox:checked').forEach(cb => {
+        totalStudents += parseInt(cb.getAttribute('data-count') || 0, 10);
+    });
+
+    let totalSeats = 0;
+    document.querySelectorAll('.wizard-room-checkbox:checked').forEach(cb => {
+        totalSeats += parseInt(cb.getAttribute('data-capacity') || 0, 10);
+    });
+
+    document.getElementById('wizard-students-tally').innerText = `${totalStudents} Students Selected`;
+    document.getElementById('wizard-seats-tally').innerText = `${totalSeats} Seats Available`;
+
+    const msg = document.getElementById('capacity-comparison-msg');
+    if (totalStudents > totalSeats) {
+        msg.innerHTML = `<span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle me-1"></i> Shortfall of ${totalStudents - totalSeats} seats. Plan will save as Draft.</span>`;
+    } else if (totalStudents > 0) {
+        msg.innerHTML = `<span class="text-success fw-bold"><i class="bi bi-check-circle me-1"></i> Sufficient capacity (${totalSeats - totalStudents} surplus seats).</span>`;
+    } else {
+        msg.innerText = 'Select at least one cohort to compute capacity.';
+    }
+}
+
+async function handleGenerateAllocation(e) {
+    e.preventDefault();
+
+    const selectedCohorts = [];
+    document.querySelectorAll('.wizard-cohort-checkbox:checked').forEach(cb => {
+        const parent = cb.closest('div.d-flex');
+        const subjInput = parent.querySelector('.wizard-cohort-subject');
+        selectedCohorts.push({
+            program_id: parseInt(cb.getAttribute('data-prog-id'), 10),
+            semester: parseInt(cb.getAttribute('data-sem'), 10),
+            subject_name: subjInput ? subjInput.value.trim() : 'Core Paper'
+        });
+    });
+
+    const selectedRooms = [];
+    document.querySelectorAll('.wizard-room-checkbox:checked').forEach(cb => {
+        selectedRooms.push(parseInt(cb.getAttribute('data-room-id'), 10));
+    });
+
+    if (selectedCohorts.length === 0) {
+        showToast('warning', 'Please select at least one student cohort.');
+        return;
+    }
+    if (selectedRooms.length === 0) {
+        showToast('warning', 'Please select at least one examination hall.');
+        return;
+    }
+
+    const payload = {
+        action: 'generate',
+        event_name: document.getElementById('wizard-event-name').value.trim(),
+        event_date: document.getElementById('wizard-event-date').value,
+        start_time: document.getElementById('wizard-start-time').value.trim(),
+        end_time: document.getElementById('wizard-end-time').value.trim(),
+        cohorts: selectedCohorts,
+        rooms: selectedRooms,
+        rule_program_separation: document.getElementById('rule-program').checked,
+        rule_semester_interleaving: true,
+        rule_randomize: document.getElementById('rule-randomize').checked,
+        allow_relaxation: document.getElementById('rule-relaxation').checked
+    };
+
+    try {
+        const res = await AppLayout.api('allocations.php', 'POST', payload);
+        wizardModalInstance.hide();
+        showToast('success', res.message);
+        await loadAllocations();
+        openEditor(res.event_id);
+    } catch (e) {}
+}
+
+async function openEditor(eventId, roomId = null) {
+    activeEventId = eventId;
+    document.getElementById('events-list-section').classList.add('d-none');
+    document.getElementById('editor-section').classList.remove('d-none');
+
+    const query = new URLSearchParams({ id: eventId });
+    if (roomId) query.set('room_id', roomId);
+
+    try {
+        const res = await AppLayout.api(`allocations.php?${query.toString()}`);
+        currentEventData = res.data;
+        const ev = currentEventData.event;
+        const rooms = currentEventData.rooms || [];
+        const selRoom = currentEventData.selected_room;
+        const allocations = currentEventData.allocations || [];
+
+        activeRoomId = selRoom ? selRoom.id : (rooms[0]?.id || 1);
+
+        document.getElementById('editor-event-title').innerText = `${ev.event_name} (Version ${ev.version_number || 1})`;
+        document.getElementById('editor-event-meta').innerText = `${AppLayout.formatDate(ev.event_date)} • ${ev.start_time} – ${ev.end_time} • ${ev.allocated_count} Students Seated`;
+        document.getElementById('editor-print-seat-plan').href = `reports/seat-plan.html?event_id=${ev.id}&room_id=${activeRoomId}`;
+
+        // Render Room Tabs
+        const tabsContainer = document.getElementById('editor-room-tabs');
+        tabsContainer.innerHTML = rooms.map(r => `
+            <button class="btn btn-sm ${parseInt(r.id, 10) === parseInt(activeRoomId, 10) ? 'btn-primary' : 'btn-outline-secondary'}" onclick="openEditor(${eventId}, ${r.id})">
+                ${r.room_name}
+            </button>
+        `).join('');
+
+        // Render Room Seating Layout Canvas
+        renderEditorCanvas(selRoom, allocations, ev.version_id);
+
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function closeEditor() {
+    document.getElementById('editor-section').classList.add('d-none');
+    document.getElementById('events-list-section').classList.remove('d-none');
+}
+
+function renderEditorCanvas(room, allocations, versionId) {
+    const container = document.getElementById('editor-canvas-container');
+    if (!room) {
+        container.innerHTML = `<div class="text-center text-muted py-5">No seating layout found for selected hall.</div>`;
+        return;
+    }
+
+    const allocBySeatId = {};
+    allocations.forEach(a => {
+        allocBySeatId[a.seat_id] = a;
+    });
+
+    const seatsByFurn = {};
+    (room.seats || []).forEach(st => {
+        if (!seatsByFurn[st.furniture_id]) seatsByFurn[st.furniture_id] = [];
+        seatsByFurn[st.furniture_id].push(st);
+    });
+
+    let html = `
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h4 class="tagline mb-0 fs-5">${room.room_name} Seating Matrix</h4>
+            <div class="caption text-muted">${room.building}, ${room.floor} &bull; ${allocations.length} / ${room.capacity} seats occupied</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 fine-print">
+            <span class="d-flex align-items-center gap-1"><span style="width:12px; height:12px; background:#0066cc; border-radius:3px;"></span> BCA</span>
+            <span class="d-flex align-items-center gap-1"><span style="width:12px; height:12px; background:#34c759; border-radius:3px;"></span> BSc.CSIT</span>
+            <span class="d-flex align-items-center gap-1"><span style="width:12px; height:12px; background:#ff9500; border-radius:3px;"></span> BBM</span>
+            <span class="d-flex align-items-center gap-1"><span style="width:12px; height:12px; background:#af52de; border-radius:3px;"></span> BBA</span>
+        </div>
+    </div>
+
+    <div class="room-grid-canvas">
+        <div class="teacher-podium mb-4">
+            <i class="bi bi-person-workspace me-1"></i> Teacher Podium / Blackboard (Front of Hall)
+        </div>
+        <div class="d-flex flex-column gap-3">
+    `;
+
+    for (let r = 1; r <= room.rows_count; r++) {
+        html += `<div class="d-flex gap-3 justify-content-center align-items-center">
+            <span class="badge bg-secondary rounded-pill" style="font-size:11px; width:55px;">Row ${r}</span>
+            <div class="row g-2 flex-grow-1">`;
+
+        for (let c = 1; c <= room.cols_count; c++) {
+            const furn = (room.furniture || []).find(f => parseInt(f.row_num, 10) === r && parseInt(f.col_num, 10) === c);
+            const furnSeats = furn ? (seatsByFurn[furn.id] || []) : [];
+
+            html += `<div class="col">
+                <div class="furniture-bench p-2">
+                    <div class="fine-print fw-bold text-center mb-1 text-muted">Desk ${r}-${c}</div>
+                    <div class="d-flex gap-1 justify-content-center">`;
+
+            furnSeats.forEach(st => {
+                const alloc = allocBySeatId[st.id] || null;
+                const pCode = alloc ? alloc.program_code_snapshot.toLowerCase().replace('.', '') : '';
+
+                html += `
+                <div class="seat-slot ${alloc ? 'occupied occupied-' + pCode : ''} p-2 flex-fill" 
+                     data-seat-id="${st.id}" 
+                     data-student-id="${alloc ? alloc.student_id : ''}" 
+                     data-alloc-id="${alloc ? alloc.id : ''}"
+                     title="${alloc ? alloc.student_name_snapshot + ' (' + alloc.symbol_no_snapshot + ')' : 'Empty Seat'}">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fine-print fw-bold text-muted">${st.seat_identifier}</span>
+                        ${alloc ? `<span class="badge-apple badge-apple-primary py-0 px-1" style="font-size:10px;">${alloc.program_code_snapshot}</span>` : ''}
+                    </div>
+                    ${alloc ? `
+                        <div class="fw-bold font-monospace text-dark" style="font-size:13px;">${alloc.symbol_no_snapshot}</div>
+                        <div class="text-truncate fine-print text-muted" style="max-width: 100px;">${alloc.student_name_snapshot}</div>
+                    ` : `
+                        <div class="text-center text-muted fine-print py-1">— Empty —</div>
+                    `}
+                </div>
+                `;
+            });
+
+            html += `</div></div></div>`;
+        }
+
+        html += `</div></div>`;
+    }
+
+    html += `</div></div>`;
+    container.innerHTML = html;
+    container.setAttribute('data-version-id', versionId);
+
+    // Initialize the click-to-swap mechanism
+    initInteractiveSeatSwap(versionId);
+}
+
+let activeSelectedSeatSlot = null;
+function initInteractiveSeatSwap(versionId) {
+    const slots = document.querySelectorAll('#editor-canvas-container .seat-slot');
+    const swapStatusBadge = document.getElementById('swap-status-badge');
+    const swapInstructions = document.getElementById('swap-instructions');
+
+    slots.forEach(slot => {
+        slot.addEventListener('click', async () => {
+            const seatId = slot.getAttribute('data-seat-id');
+            const studentId = slot.getAttribute('data-student-id');
+
+            if (!activeSelectedSeatSlot) {
+                if (!studentId) {
+                    showToast('info', 'Please select an occupied seat first.');
+                    return;
+                }
+                activeSelectedSeatSlot = slot;
+                slot.classList.add('seat-selected');
+                swapStatusBadge.classList.remove('d-none');
+                swapInstructions.innerText = 'Now click any other seat (empty or occupied) to swap or move.';
+                return;
+            }
+
+            if (activeSelectedSeatSlot === slot) {
+                activeSelectedSeatSlot.classList.remove('seat-selected');
+                activeSelectedSeatSlot = null;
+                swapStatusBadge.classList.add('d-none');
+                swapInstructions.innerText = 'Click any occupied seat to begin moving/swapping.';
+                return;
+            }
+
+            // Swap between activeSelectedSeatSlot and slot
+            const seatIdA = activeSelectedSeatSlot.getAttribute('data-seat-id');
+            const seatIdB = slot.getAttribute('data-seat-id');
+
+            try {
+                const res = await AppLayout.api('allocations.php', 'POST', {
+                    action: 'swap_seats',
+                    version_id: versionId,
+                    seat_id_a: parseInt(seatIdA, 10),
+                    seat_id_b: parseInt(seatIdB, 10)
+                });
+                showToast('success', res.message);
+                activeSelectedSeatSlot.classList.remove('seat-selected');
+                activeSelectedSeatSlot = null;
+                swapStatusBadge.classList.add('d-none');
+                swapInstructions.innerText = 'Click any occupied seat to begin moving or swapping.';
+                openEditor(activeEventId, activeRoomId);
+            } catch (e) {}
+        });
+    });
+}
+
+function openVersionsModal() {
+    if (!currentEventData) return;
+    const versions = currentEventData.versions || [];
+    const tbody = document.getElementById('versions-tbody');
+    const activeVersionId = currentEventData.event.active_version_id;
+
+    tbody.innerHTML = versions.map(v => {
+        const isActive = parseInt(v.id, 10) === parseInt(activeVersionId, 10);
+        return `
+        <tr>
+            <td>
+                <span class="body-strong">Version ${v.version_number}</span>
+                ${isActive ? '<span class="badge-apple badge-apple-success ms-1">Active</span>' : ''}
+            </td>
+            <td class="fine-print text-muted">${AppLayout.formatDate(v.created_at)}</td>
+            <td><span class="fw-bold">${v.allocated_count}</span> / ${v.total_students}</td>
+            <td class="fine-print text-muted">${v.generation_notes || '—'}</td>
+            <td class="text-end">
+                ${!isActive ? `
+                    <button class="btn btn-sm btn-outline-primary" onclick="setActiveVersion(${currentEventData.event.id}, ${v.id})">
+                        Make Active
+                    </button>
+                ` : '<span class="fine-print text-success fw-bold">Currently Live</span>'}
+            </td>
+        </tr>
+        `;
+    }).join('');
+
+    versionsModalInstance.show();
+}
+
+async function setActiveVersion(eventId, versionId) {
+    try {
+        const res = await AppLayout.api('allocations.php', 'POST', {
+            action: 'set_active_version',
+            event_id: eventId,
+            version_id: versionId
+        });
+        versionsModalInstance.hide();
+        showToast('success', res.message);
+        openEditor(eventId, activeRoomId);
+        loadAllocations();
+    } catch (e) {}
+}
+
+async function deleteEvent(id, name) {
+    if (!confirm(`Are you sure you want to delete allocation event "${name}"?`)) return;
+    try {
+        const res = await AppLayout.api('allocations.php', 'POST', { action: 'delete_event', event_id: id });
+        showToast('success', res.message);
+        loadAllocations();
+    } catch (e) {}
+}
+</script>
+
+</body>
+</html>
