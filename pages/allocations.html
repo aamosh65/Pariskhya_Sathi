@@ -115,7 +115,7 @@
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-md-4">
                             <label class="form-label fine-print fw-bold">Examination Title *</label>
-                            <input type="text" id="wizard-event-name" class="form-control" value="Mid-Term Examination 2026" required>
+                            <input type="text" id="wizard-event-name" class="form-control" placeholder="e.g. Mid-Term Examination 2026" required>
                         </div>
                         <div class="col-6 col-md-3">
                             <label class="form-label fine-print fw-bold">Date *</label>
@@ -350,34 +350,42 @@ function openWizardModal() {
 
 function renderWizardCohortsAndRooms() {
     const cohortsList = document.getElementById('wizard-cohorts-list');
-    cohortsList.innerHTML = availableCohortsData.map((c, i) => `
-        <div class="d-flex align-items-center justify-content-between p-2 rounded bg-white border">
-            <div class="form-check">
-                <input class="form-check-input wizard-cohort-checkbox" type="checkbox" id="cohort-${i}" data-prog-id="${c.program_id}" data-sem="${c.semester}" data-count="${c.student_count}" onchange="updateCapacityTally()">
-                <label class="form-check-label fine-print fw-bold ms-1" for="cohort-${i}">
-                    ${c.program_code} — Sem ${c.semester}
-                </label>
+    if (availableCohortsData.length === 0) {
+        cohortsList.innerHTML = `<div class="text-muted text-center py-3 fine-print"><i class="bi bi-people d-block fs-4 mb-1 opacity-50"></i>No student cohorts found in active academic year.</div>`;
+    } else {
+        cohortsList.innerHTML = availableCohortsData.map((c, i) => `
+            <div class="d-flex align-items-center justify-content-between p-2 rounded bg-white border">
+                <div class="form-check">
+                    <input class="form-check-input wizard-cohort-checkbox" type="checkbox" id="cohort-${i}" data-prog-id="${c.program_id}" data-sem="${c.semester}" data-count="${c.student_count}" onchange="updateCapacityTally()">
+                    <label class="form-check-label fine-print fw-bold ms-1" for="cohort-${i}">
+                        ${c.program_code} — Sem ${c.semester}
+                    </label>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="text" class="form-control form-control-sm wizard-cohort-subject" style="width: 140px;" placeholder="Subject Name" value="Paper ${c.semester}">
+                    <span class="badge-apple badge-apple-primary">${c.student_count}</span>
+                </div>
             </div>
-            <div class="d-flex align-items-center gap-2">
-                <input type="text" class="form-control form-control-sm wizard-cohort-subject" style="width: 140px;" placeholder="Subject Name" value="Paper ${c.semester}">
-                <span class="badge-apple badge-apple-primary">${c.student_count}</span>
-            </div>
-        </div>
-    `).join('');
+        `).join('');
+    }
 
     const roomsList = document.getElementById('wizard-rooms-list');
-    roomsList.innerHTML = availableRoomsData.map((r, i) => `
-        <div class="d-flex align-items-center justify-content-between p-2 rounded bg-white border">
-            <div class="form-check">
-                <input class="form-check-input wizard-room-checkbox" type="checkbox" id="room-${i}" data-room-id="${r.id}" data-capacity="${r.capacity}" checked onchange="updateCapacityTally()">
-                <label class="form-check-label fine-print fw-bold ms-1" for="room-${i}">
-                    ${r.room_name}
-                </label>
-                <div class="caption text-muted">${r.building}, ${r.floor}</div>
+    if (availableRoomsData.length === 0) {
+        roomsList.innerHTML = `<div class="text-muted text-center py-3 fine-print"><i class="bi bi-door-closed d-block fs-4 mb-1 opacity-50"></i>No examination rooms configured yet.</div>`;
+    } else {
+        roomsList.innerHTML = availableRoomsData.map((r, i) => `
+            <div class="d-flex align-items-center justify-content-between p-2 rounded bg-white border">
+                <div class="form-check">
+                    <input class="form-check-input wizard-room-checkbox" type="checkbox" id="room-${i}" data-room-id="${r.id}" data-capacity="${r.capacity}" checked onchange="updateCapacityTally()">
+                    <label class="form-check-label fine-print fw-bold ms-1" for="room-${i}">
+                        ${r.room_name}
+                    </label>
+                    <div class="caption text-muted">${r.building}, ${r.floor}</div>
+                </div>
+                <span class="badge-apple badge-apple-primary">${r.capacity} Seats</span>
             </div>
-            <span class="badge-apple badge-apple-primary">${r.capacity} Seats</span>
-        </div>
-    `).join('');
+        `).join('');
+    }
 
     updateCapacityTally();
 }

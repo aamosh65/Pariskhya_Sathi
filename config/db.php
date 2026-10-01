@@ -58,7 +58,7 @@ function get_db(): PDO {
 }
 
 /**
- * Auto-initializes schema and populates rich synthetic data.
+ * Auto-initializes schema and baseline masters if tables do not exist.
  */
 function initialize_database(PDO $pdo): void {
     // Check if academic_years table exists
@@ -75,7 +75,26 @@ function initialize_database(PDO $pdo): void {
     if (!$tableExists) {
         $schemaSql = file_get_contents(__DIR__ . '/schema.sql');
         $pdo->exec($schemaSql);
-        seed_synthetic_data($pdo);
+        seed_master_data($pdo);
+    }
+}
+
+/**
+ * Seed baseline reference tables (Default active Academic Year).
+ */
+function seed_master_data(PDO $pdo): void {
+    $pdo->beginTransaction();
+    try {
+        // Default Active Academic Year
+        $pdo->exec("INSERT INTO academic_years (id, name, start_date, end_date, status, is_active) VALUES 
+            (1, '2026/27', '2026-01-01', '2026-12-31', 'active', 1)");
+
+        $pdo->commit();
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
     }
 }
 

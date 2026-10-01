@@ -109,7 +109,9 @@
             <div class="apple-card mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h4 class="tagline mb-0 fs-5">Enrolled Programs</h4>
-                    <a href="pages/students.html" class="fine-print text-primary text-decoration-none">Manage</a>
+                    <button class="btn btn-sm btn-outline-primary" onclick="openProgramModal()">
+                        <i class="bi bi-plus-lg me-1"></i> Program
+                    </button>
                 </div>
                 <div id="program-cohorts-list" class="d-flex flex-column gap-3">
                     <div class="text-center text-muted py-3">Loading cohorts...</div>
@@ -146,6 +148,44 @@
     </div>
 </main>
 
+<!-- Program Enrollment Modal -->
+<div class="modal fade" id="programModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content apple-card border-0 p-3">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title tagline">Enroll New Academic Program</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <form id="program-form">
+                    <div class="mb-3">
+                        <label class="form-label fine-print fw-bold">Program Full Name *</label>
+                        <input type="text" id="prog-name" class="form-control" placeholder="e.g. Bachelor of Computer Application" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fine-print fw-bold">Program Code *</label>
+                            <input type="text" id="prog-code" class="form-control font-monospace" placeholder="e.g. BCA" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fine-print fw-bold">Total Semesters</label>
+                            <input type="number" id="prog-semesters" class="form-control" value="8" min="1" max="12" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fine-print fw-bold">Faculty / Department</label>
+                        <input type="text" id="prog-dept" class="form-control" placeholder="e.g. Computer Science & IT">
+                    </div>
+                    <div class="text-end pt-2">
+                        <button type="button" class="btn-apple-ghost me-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-apple-primary">Save Program</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="app-footer"></div>
 
 <!-- Bootstrap 5 Bundle JS -->
@@ -155,6 +195,8 @@
 <script src="assets/js/app.js"></script>
 
 <script>
+let programModalInstance = null;
+
 document.addEventListener('DOMContentLoaded', async () => {
     AppLayout.init({
         heading: 'Executive Dashboard',
@@ -167,6 +209,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         `
     });
 
+    document.getElementById('program-form').addEventListener('submit', handleProgramSubmit);
+    await loadDashboard();
+});
+
+async function loadDashboard() {
     try {
         const res = await AppLayout.api('dashboard.php');
         const data = res.data;
@@ -240,13 +287,46 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
             `).join('');
         } else {
-            progContainer.innerHTML = `<div class="text-center text-muted py-2">No programs enrolled.</div>`;
+            progContainer.innerHTML = `
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-mortarboard fs-3 d-block mb-1 opacity-50"></i>
+                    <div class="fine-print mb-2">No programs enrolled yet.</div>
+                    <button class="btn btn-sm btn-apple-primary" onclick="openProgramModal()">
+                        <i class="bi bi-plus-lg me-1"></i> Enroll Program
+                    </button>
+                </div>
+            `;
         }
 
     } catch (e) {
         console.error('Failed to load dashboard data', e);
     }
-});
+}
+
+function openProgramModal() {
+    if (!programModalInstance) {
+        programModalInstance = new bootstrap.Modal(document.getElementById('programModal'));
+    }
+    document.getElementById('program-form').reset();
+    programModalInstance.show();
+}
+
+async function handleProgramSubmit(e) {
+    e.preventDefault();
+    const payload = {
+        action: 'create',
+        name: document.getElementById('prog-name').value.trim(),
+        code: document.getElementById('prog-code').value.trim(),
+        total_semesters: parseInt(document.getElementById('prog-semesters').value, 10),
+        department: document.getElementById('prog-dept').value.trim()
+    };
+    try {
+        const res = await AppLayout.api('programs.php', 'POST', payload);
+        if (programModalInstance) programModalInstance.hide();
+        showToast('success', res.message);
+        await loadDashboard();
+    } catch (err) {}
+}
 </script>
 
 </body>

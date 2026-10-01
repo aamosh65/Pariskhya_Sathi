@@ -180,6 +180,8 @@ async function loadEventOptions() {
 
         if (events.length === 0) {
             select.innerHTML = '<option value="">No allocation sessions found</option>';
+            document.getElementById('summary-programs-tbody').innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">No examination allocation sessions found.</td></tr>';
+            document.getElementById('summary-rooms-tbody').innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">No examination allocation sessions found.</td></tr>';
             return;
         }
 

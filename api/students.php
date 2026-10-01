@@ -103,6 +103,16 @@ try {
                 json_response(['success' => false, 'error' => 'Name, Symbol No, and Roll No are required.'], 400);
             }
 
+            if ($programId <= 0) {
+                json_response(['success' => false, 'error' => 'Please enroll and select a valid program first.'], 400);
+            }
+
+            $chkProg = $db->prepare("SELECT id FROM programs WHERE id = ?");
+            $chkProg->execute([$programId]);
+            if (!$chkProg->fetch()) {
+                json_response(['success' => false, 'error' => 'Selected program was not found. Please add the program first.'], 400);
+            }
+
             // Check duplicate symbol number in this academic year
             $chk = $db->prepare("SELECT id FROM students WHERE academic_year_id = ? AND symbol_no = ? AND is_deleted = 0");
             $chk->execute([(int)$activeYear['id'], $symbolNo]);
@@ -234,7 +244,13 @@ try {
                     continue;
                 }
 
-                $pId = $programCodeMap[$progCode] ?? 1;
+                if (!isset($programCodeMap[$progCode])) {
+                    $stmtNewProg = $db->prepare("INSERT INTO programs (name, code, department, total_semesters, status) VALUES (?, ?, 'Academic Department', 8, 'active')");
+                    $stmtNewProg->execute([$progCode, $progCode]);
+                    $newProgId = (int)$db->lastInsertId();
+                    $programCodeMap[$progCode] = $newProgId;
+                }
+                $pId = $programCodeMap[$progCode];
 
                 // Check duplicate
                 $chk = $db->prepare("SELECT id FROM students WHERE academic_year_id = ? AND symbol_no = ? AND is_deleted = 0");
